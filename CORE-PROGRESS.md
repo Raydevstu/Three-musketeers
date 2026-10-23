@@ -13,7 +13,7 @@ This is the only project progress record. Keep status, evidence, risks, decision
 | Log distillation | not started | No source/runtime code in project | Deterministic extraction tests |
 | Context ledger | durable local ledger implemented (23 Oct 2026) | JSONL file-backed `src/ledger.mjs` with explicit empty/available status; tests pass | Integrate into gateway runtime |
 | MCP enforcement | not started | Proposal only in Second Data | After Phase 1 evidence |
-| Ray Sandbox OARC | authenticated, wrong scope | Operator workspace is healthy but scoped to `staging-project`; `lib/runtime/local-operator.ts` exposes only that seeded scope | Obtain/configure the real Three AI Musketeers tenant/bank/project identity |
+| Ray Sandbox OARC | authenticated, wrong scope | Operator workspace is healthy but scoped to `staging-project`; onboarding now binds existing authenticated scope and returns explicit `unconfigured`, but does not provision a project | Obtain/configure the real Three AI Musketeers tenant/bank/project identity |
 | Ray Memory app | local memory page green; project sharing not ready | Memory UI is healthy; authenticated operator session is healthy for `staging-project`; no Three AI Musketeers scope round trip exists | Establish authenticated project-scoped share round trip |
 
 ## Evidence limits
