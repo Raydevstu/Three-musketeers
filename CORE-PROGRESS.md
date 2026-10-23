@@ -13,8 +13,8 @@ This is the only project progress record. Keep status, evidence, risks, decision
 | Log distillation | not started | No source/runtime code in project | Deterministic extraction tests |
 | Context ledger | durable local ledger implemented (23 Oct 2026) | JSONL file-backed `src/ledger.mjs` with explicit empty/available status; tests pass | Integrate into gateway runtime |
 | MCP enforcement | not started | Proposal only in Second Data | After Phase 1 evidence |
-| Ray Sandbox OARC | authenticated, wrong scope | Operator workspace is healthy but scoped to `staging-project`; onboarding now binds existing authenticated scope and returns explicit `unconfigured`, but does not provision a project | Obtain/configure the real Three AI Musketeers tenant/bank/project identity |
-| Ray Memory app | local memory page green; project sharing not ready | Memory UI is healthy; authenticated operator session is healthy for `staging-project`; no Three AI Musketeers scope round trip exists | Establish authenticated project-scoped share round trip |
+| Ray Sandbox OARC | project-scoped local runtime verified | Configured audit identity is exposed as the server-approved `configured` scope; onboarding returns `tenant-local / oarc-bank / project-1`; retain 201, recall 200, other-project recall 403; migration 0012 applied | Preserve configuration in deployment and separately verify production |
+| Ray Memory app | local project sharing verified | Authenticated onboarding and project-memory routes use the configured scope; Ray full suite 365 passed, 6 skipped; typecheck and build passed | Browser and production verification remain separate evidence gates |
 
 ## Evidence limits
 
@@ -22,4 +22,4 @@ This is the only project progress record. Keep status, evidence, risks, decision
 - `http://127.0.0.1:3028/` is evidence of a reachable Ray Sandbox OARC page only.
 - Ray Memory health is not the same as project sharing readiness.
 - The local Phase 0 -> Phase 1 Big Slice is implemented and committed as `c077e65 feat: bootstrap phase 1 context governor`.
-- Ray project-scoped sharing remains the only unresolved Phase 1 gate; the Ray worktree is dirty with unrelated changes and was not modified.
+- Ray project-scoped sharing is verified in the local current checkout; the Ray worktree remains dirty with user changes, including the uncommitted integration edits used for this verification.
