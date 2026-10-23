@@ -1,6 +1,6 @@
 # Ray Sandbox OARC Integration Readiness
 
-**Checked:** 2026-10-23
+**Checked:** 2026-10-23 (scope audit)
 
 ## Direct checks
 
@@ -8,12 +8,15 @@
 - Returned HTML included `Ray Sandbox OARC`, `Hindsight`, and `Agent Memory`.
 - `GET /health`, `/healthz`, `/ready`, `/api/health`, and `/api/project-memory` returned 404.
 - `GET /api/project-dashboard` returned HTTP 400, indicating a route exists but requires missing request context/parameters.
+- The authenticated operator workspace reports project scope `staging-project`.
+- The Ray scope registry is `lib/runtime/local-operator.ts`; it currently exposes only the seeded `staging -> staging-project` scope.
+- No Three AI Musketeers tenant, bank, or project identifier is configured in the Ray local environment.
 
 ## Result
 
-**Ray Sandbox OARC is reachable, but not verified ready or wired for Three AI Musketeers.** The current evidence proves page identity and a partial API surface only. There is no verified project identifier, authentication contract, ingestion route, read-back route, or end-to-end event round trip for this project.
+**Ray Sandbox OARC is reachable and authentication works, but it is not wired for Three AI Musketeers.** The authenticated session is scoped to `staging-project`; the project-specific identifier and scope mapping are absent. No project-specific ingestion/read-back round trip has been verified.
 
-The Memory UI itself is green for local development: it reports `Memory healthy`, 21 durable memories, and a healthy development runtime. The Integrations page reports `Runtime metadata unavailable`, and the share/MCP surface is not green: `/api/mcp` returns `MCP authentication failed`.
+The Memory UI itself is green for local development: it reports `Memory healthy` and healthy durable memory. The operator workspace is authenticated and healthy for `staging-project`; that is not evidence for the Three AI Musketeers scope. The Integrations page reports `Runtime metadata unavailable`, and the share/MCP surface remains unverified for this project.
 
 ## Required wiring proof
 
