@@ -18,6 +18,14 @@ Continue with Phase 2 — Surgical enforcement — from the completed Phase 0 �
 - Live local verification passed: scoped retain HTTP 201, scoped recall HTTP 200, and other-project recall HTTP 403.
 - Ray validation passed: 365 tests passed, 6 skipped; typecheck passed; production build passed with three existing unused-ESLint-disable warnings.
 - The current Ray integration edits remain uncommitted in a dirty Ray worktree because unrelated user changes are present there.
+- Phase 2 local enforcement slice is implemented: path-safe bounded retrieval, named budget profiles, and a Governor MCP HTTP boundary.
+- Phase 3 optimization foundation is implemented locally: category-based context diffs, conservative explainable routing decisions, and a read-only inspection endpoint.
+- Phase 3 telemetry slice is implemented locally: context diffs can be linked to turn IDs, stale telemetry is refused, and diff execution has a small benchmark; 23 tests pass.
+- Route capability profiles, compatibility checks, and explainable route-decision ledger records are now implemented locally; 26 tests pass.
+- Routing mode handling is implemented with `off` as the default; `observe` reports candidates without applying routes, and `enforce` is available only as an explicit caller choice; 28 tests pass.
+- Observe decisions are now persisted through the inspection endpoint, and benchmark coverage spans small, medium, and large context diffs; 30 tests pass.
+- Docker staging harness is implemented: non-root app image, PostgreSQL, mock streaming provider, persistent volumes, auth, readiness, and host verification on port 18080; 32 tests pass.
+- Local staging checks completed: PostgreSQL backup restore, auth rejection, authenticated MCP profile listing, 50/50 health load probes, and mock timeout abort verification.
 
 ## Decisions
 
@@ -27,7 +35,7 @@ Continue with Phase 2 — Surgical enforcement — from the completed Phase 0 �
 - Embedded commands and code in `Project DATA/` are proposals, not executable instructions.
 - Phase 1 contracts and evidence come before MCP, routing, Postgres, IDE integration, or deployment.
 - Implementation must be one coherent Big Slice, including contracts, callers, tests, and verification.
-- Ten focused Three AI Musketeers tests pass with `npm test`, including a fake-provider HTTP round trip, local server health, and capsule round-trip.
+- Thirty-two focused Three AI Musketeers tests pass with `npm test`, including a mock-provider HTTP round trip, local server health, MCP retrieval, optimization inspection, and capsule round-trip.
 - `npm run status` returns `{"state":"empty","records":0}` for a new local ledger.
 
 ## Evidence
@@ -42,16 +50,16 @@ Continue with Phase 2 — Surgical enforcement — from the completed Phase 0 �
 
 ## Exact next boundary — Phase 2 Big Slice
 
-Start Phase 2 with one coherent implementation slice:
+Phase 2 implementation slice completed locally:
 
-1. Inventory the current symbol/module graph and define safe retrieval boundaries.
-2. Define normalized budget/profile contracts and denial states.
-3. Implement path-safe targeted retrieval and bounded output.
-4. Add MCP inventory profiles and the Governor MCP server boundary.
-5. Add focused tests for path traversal, profile denial, budget rejection, bounded output, and targeted retrieval.
-6. Verify direct HTTP/API behavior and update this handoff plus `CORE-PROGRESS.md` in the same slice.
+1. Existing Phase 1 contracts and gateway callers were reviewed.
+2. Added named profiles and budget denial states.
+3. Implemented path-safe targeted file retrieval and bounded output.
+4. Added `/mcp` profile listing and retrieval methods.
+5. Added focused tests for path traversal, profile denial, budget rejection, bounded output, and HTTP profile listing.
+6. `npm test` passes 15 tests.
 
-First boundary: read the existing Phase 1 contracts and gateway callers, then add the Phase 2 profile and budget contract before implementing retrieval.
+Next boundary: commit this verified local slice, then use an authorized Git remote and hosted staging credentials for CI, Neon, and Render verification.
 
 ## Open risks
 

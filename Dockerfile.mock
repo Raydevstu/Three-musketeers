@@ -1,0 +1,6 @@
+FROM node:24-alpine
+WORKDIR /mock
+COPY mock-provider.mjs .
+USER node
+EXPOSE 9000
+CMD ["node", "mock-provider.mjs"]

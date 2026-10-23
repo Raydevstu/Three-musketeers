@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: three-ai-musketeers
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PROVIDER
+        value: local
+      - key: MODEL
+        value: unconfigured
+      - key: EVIDENCE_LEDGER_PATH
+        value: /app/.data/evidence.jsonl
+      - key: DATABASE_URL
+        sync: false
+      - key: GATEWAY_AUTH_TOKEN
+        sync: false
+      - key: PROVIDER_URL
+        sync: false

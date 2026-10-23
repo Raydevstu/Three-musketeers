@@ -1,0 +1,46 @@
+services:
+  app:
+    build: .
+    ports:
+      - "18080:8080"
+    environment:
+      PORT: 8080
+      HOST: 0.0.0.0
+      EVIDENCE_LEDGER_PATH: /app/.data/evidence.jsonl
+      PROVIDER_URL: ${PROVIDER_URL:-http://mock-provider:9000/v1/chat}
+      PROVIDER: ${PROVIDER:-mock}
+      MODEL: ${MODEL:-mock-model}
+      GATEWAY_AUTH_TOKEN: ${GATEWAY_AUTH_TOKEN:-local-development-token}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-governor}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/${POSTGRES_DB:-governor}
+    volumes:
+      - governor-data:/app/.data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mock-provider:
+        condition: service_started
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-governor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local-only}
+      POSTGRES_DB: ${POSTGRES_DB:-governor}
+    ports:
+      - "5432:5432"
+    volumes:
+      - governor-postgres:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U governor -d governor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  mock-provider:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
+    expose:
+      - "9000"
+volumes:
+  governor-data:
+  governor-postgres:
