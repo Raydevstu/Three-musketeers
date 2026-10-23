@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { sendGatewayRequest } from './gateway.mjs';
-import { createLedger } from './ledger.mjs';
+import { checkLedgerReady, createLedger } from './ledger.mjs';
 import { createGovernor, defaultProfiles, retrieveFile } from './enforcement.mjs';
 import { diffContext, decideRoute, applyRoutingMode, persistRouteDecision } from './optimization.mjs';
 
@@ -20,8 +20,9 @@ export function createGatewayServer({ providerUrl, provider, model, ledger, fetc
       return;
     }
     if (request.method === 'GET' && request.url === '/ready') {
-      response.writeHead(200, { 'content-type': 'application/json' });
-      response.end(JSON.stringify({ status: 'ready', ledger: ledger ? 'configured' : 'unavailable' }));
+      const readiness = await checkLedgerReady(ledger);
+      response.writeHead(readiness.status === 'ready' ? 200 : 503, { 'content-type': 'application/json' });
+      response.end(JSON.stringify(readiness));
       return;
     }
     if (request.method === 'POST' && request.url === '/mcp') {

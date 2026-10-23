@@ -37,3 +37,14 @@ export function ledgerStatus(ledger) {
   const records = ledger.records.length;
   return { state: records ? 'available' : 'empty', records };
 }
+
+export async function checkLedgerReady(ledger) {
+  if (!ledger) return { status: 'unavailable', ledger: 'unavailable' };
+  if (!ledger.pool) return { status: 'ready', ledger: 'configured' };
+  try {
+    await ledger.pool.query('SELECT 1');
+    return { status: 'ready', ledger: 'configured', database: 'ready' };
+  } catch {
+    return { status: 'unavailable', ledger: 'configured', database: 'unavailable' };
+  }
+}

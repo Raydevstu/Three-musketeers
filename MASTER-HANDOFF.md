@@ -24,7 +24,7 @@ Continue with Phase 2 — Surgical enforcement — from the completed Phase 0 �
 - Route capability profiles, compatibility checks, and explainable route-decision ledger records are now implemented locally; 26 tests pass.
 - Routing mode handling is implemented with `off` as the default; `observe` reports candidates without applying routes, and `enforce` is available only as an explicit caller choice; 28 tests pass.
 - Observe decisions are now persisted through the inspection endpoint, and benchmark coverage spans small, medium, and large context diffs; 30 tests pass.
-- Docker staging harness is implemented: non-root app image, PostgreSQL, mock streaming provider, persistent volumes, auth, readiness, and host verification on port 18080; 32 tests pass.
+- Docker staging harness is implemented: non-root app image, PostgreSQL, mock streaming provider, persistent volumes, auth, readiness, and host verification on port 18080; 34 tests pass. Configured database readiness now executes `SELECT 1` and returns 503 on failure.
 - Local staging checks completed: PostgreSQL backup restore, auth rejection, authenticated MCP profile listing, 50/50 health load probes, and mock timeout abort verification.
 
 ## Decisions
@@ -66,3 +66,4 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Phase 2 must preserve the Phase 1 evidence ledger and task-capsule contracts without duplicate stores or documents.
 - The Ray MCP/share endpoint, browser workflow, benchmark, deployment, and production behavior are not verified.
 - Ray integration changes are not committed because the external worktree contains unrelated user changes; preserve that worktree carefully.
+- Hosted Render readiness still needs verification after deploying this database-readiness change; the public service previously reported configuration, not a live database query.

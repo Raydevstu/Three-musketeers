@@ -31,6 +31,30 @@ test('keeps liveness public while protecting readiness', async () => {
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 });
 
+test('checks the configured database before reporting readiness', async () => {
+  let query;
+  const ledger = { pool: { query: async (sql) => { query = sql; return { rows: [{ '?column?': 1 }] }; } } };
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  const ready = await fetch(`http://127.0.0.1:${port}/ready`);
+  assert.equal(ready.status, 200);
+  assert.equal((await ready.json()).database, 'ready');
+  assert.equal(query, 'SELECT 1');
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+});
+
+test('returns 503 when the configured database readiness check fails', async () => {
+  const ledger = { pool: { query: async () => { throw new Error('database unavailable'); } } };
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  const ready = await fetch(`http://127.0.0.1:${port}/ready`);
+  assert.equal(ready.status, 503);
+  assert.deepEqual(await ready.json(), { status: 'unavailable', ledger: 'configured', database: 'unavailable' });
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+});
+
 test('serves a bounded MCP retrieval method', async () => {
   const ledger = await createLedger();
   const server = createGatewayServer({ providerUrl: 'https://provider.test/chat', provider: 'openai', model: 'test-model', ledger });
