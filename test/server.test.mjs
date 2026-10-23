@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer as createHttpServer } from 'node:http';
 import { createGatewayServer } from '../src/server.mjs';
 import { createLedger, readLedger } from '../src/ledger.mjs';
 
@@ -16,6 +17,34 @@ test('serves a local streaming gateway endpoint', async () => {
   assert.match(await response.text(), /usage/);
   assert.equal((await readLedger(ledger)).length, 1);
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+});
+
+test('verifies /v1/chat against a safe streaming mock provider', async () => {
+  const provider = createHttpServer((request, response) => {
+    if (request.method !== 'POST' || request.url !== '/v1/chat') {
+      response.writeHead(404).end();
+      return;
+    }
+    response.writeHead(200, { 'content-type': 'text/event-stream' });
+    response.end('data: {"choices":[{"delta":{"content":"mock"}}]}\n\ndata: {"usage":{"prompt_tokens":3,"completion_tokens":1}}\n\n');
+  });
+  await new Promise((resolve) => provider.listen(0, '127.0.0.1', resolve));
+  const providerPort = provider.address().port;
+  const ledger = await createLedger();
+  const server = createGatewayServer({ providerUrl: `http://127.0.0.1:${providerPort}/v1/chat`, provider: 'mock', model: 'mock-model', ledger });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port;
+  const response = await fetch(`http://127.0.0.1:${port}/v1/chat`, { method: 'POST', body: JSON.stringify({ messages: [{ role: 'user', content: 'safe test' }] }) });
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /mock/);
+  assert.deepEqual((await readLedger(ledger))[0], {
+    schema_version: '1.0.0', provider: 'mock', model_id: 'mock-model', latency_ms: 0,
+    prompt_tokens: 3, completion_tokens: 1, cached_tokens: 0,
+    context_breakdown: { system_instructions: 0, memory_skills: 0, tool_schemas: 0, files_code: 0, tool_output_logs: 0, history: 0 },
+    timestamp: (await readLedger(ledger))[0].timestamp, estimated_cost_usd: 0
+  });
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  await new Promise((resolve, reject) => provider.close((error) => error ? reject(error) : resolve()));
 });
 
 test('keeps liveness public while protecting readiness', async () => {

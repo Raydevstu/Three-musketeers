@@ -8,7 +8,7 @@ This is the only project progress record. Keep status, evidence, risks, decision
 |---|---|---|---|
 | Source requirements | implemented | Four project data files read and synthesized | Lock contracts |
 | Runtime bootstrap | implemented (23 Oct 2026) | Node 24.20.0, npm 12.2.0, Git repository initialized | Add gateway boundary |
-| Gateway telemetry | HTTP streaming adapter implemented (23 Oct 2026) | `src/gateway.mjs` sends provider requests, forwards chunks, and records trailing usage; tests pass | Add runtime command/server boundary |
+| Gateway telemetry | HTTP streaming adapter implemented (23 Oct 2026) | `src/gateway.mjs` sends provider requests, forwards chunks, and records trailing usage; real local HTTP mock-provider `/v1/chat` verification passes; 35 tests pass | Verify hosted provider configuration separately |
 | Task capsules | durable contract implemented (23 Oct 2026) | Versioned validator, JSON round-trip, Markdown rendering, and CLI read command pass | Integrate handoff trigger |
 | Log distillation | not started | No source/runtime code in project | Deterministic extraction tests |
 | Context ledger | durable local ledger implemented (23 Oct 2026) | JSONL file-backed `src/ledger.mjs` with explicit empty/available status; tests pass | Integrate into gateway runtime |
