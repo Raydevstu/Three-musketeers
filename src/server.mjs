@@ -94,5 +94,5 @@ if (process.argv[1]?.endsWith('server.mjs')) {
     ledger,
     authToken: process.env.GATEWAY_AUTH_TOKEN ?? null
   });
-  server.listen(Number(process.env.PORT ?? 8080), process.env.HOST ?? '127.0.0.1');
+  server.listen(Number(process.env.PORT ?? 8080), process.env.HOST ?? '0.0.0.0');
 }
