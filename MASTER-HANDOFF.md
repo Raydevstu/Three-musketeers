@@ -68,3 +68,4 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Ray integration changes are not committed because the external worktree contains unrelated user changes; preserve that worktree carefully.
 - Hosted Render readiness still needs verification after deploying this database-readiness change; the public service previously reported configuration, not a live database query.
 - Safe `/v1/chat` verification passes locally against an isolated HTTP mock provider; hosted provider connectivity remains unverified.
+- Protocol-level MCP client integration now passes locally: authentication, profile listing, explicit retrieval budget, safe retrieval, and traversal denial are verified over HTTP.
