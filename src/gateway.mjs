@@ -44,9 +44,17 @@ export async function streamGatewayResponse(response, metadata, ledger, writeChu
 }
 
 export async function sendGatewayRequest(fetchImpl, url, requestBody, metadata, ledger, writeChunk) {
+  const headers = {
+    'content-type': 'application/json',
+    accept: 'text/event-stream'
+  };
+  // OpenRouter support
+  if (process.env.OPENROUTER_API_KEY) {
+    headers.Authorization = `Bearer ${process.env.OPENROUTER_API_KEY}`;
+  }
   const response = await fetchImpl(url, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+    headers,
     body: JSON.stringify(requestBody)
   });
   if (!response.ok) throw new Error(`Provider request failed: ${response.status}`);
