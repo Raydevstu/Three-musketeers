@@ -126,3 +126,32 @@ test('exposes protected request metrics and structured request logs', async () =
   assert.ok(logs.some((entry) => entry.event === 'http_request' && entry.path === '/metrics'));
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 });
+
+test('runs observe routing from authoritative gateway telemetry without applying a route', async () => {
+  const ledger = await createLedger();
+  const upstream = async () => new Response('data: {"usage":{"prompt_tokens":8,"completion_tokens":2}}\n\n', { status: 200 });
+  const server = createGatewayServer({ providerUrl: 'http://mock-provider/v1/chat', provider: 'mock', model: 'mock-model', ledger, fetchImpl: upstream });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  try {
+    const chat = await fetch(`http://127.0.0.1:${port}/v1/chat`, { method: 'POST', body: JSON.stringify({ messages: [] }) });
+    assert.equal(chat.status, 200);
+    const [telemetry] = await readLedger(ledger);
+    const inspection = await fetch(`http://127.0.0.1:${port}/optimization/inspect`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        previous: { files_code: ['old.js'] }, current: { files_code: ['new.js'] },
+        requested_tokens: telemetry.prompt_tokens, telemetry, budget: 20,
+        routes: ['fast'], context_categories: ['files_code'], routing_mode: 'observe', turn_id: 'observe-test'
+      })
+    });
+    assert.equal(inspection.status, 200);
+    const body = await inspection.json();
+    assert.equal(body.decision.route, 'fast');
+    assert.equal(body.decision.mode, 'observe');
+    assert.equal(body.decision.applied_route, null);
+    assert.equal(ledger.routeDecisions.at(-1).decision.mode, 'observe');
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
