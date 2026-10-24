@@ -24,6 +24,7 @@ This is the only project progress record. Keep status, evidence, risks, decision
 
 - Oversized `/v1/chat` requests now return explicit HTTP 413; full suite passes 39 tests.
 - Hosted Render verification after commit `4b9fb03`: `/ready` returned 200 with database ready, `/health` returned 200, and unauthenticated `/metrics` was refused with 503 because gateway authentication is not configured.
+- Hosted authentication is now configured and verified: authenticated `/metrics` returned HTTP 200 with Prometheus counters, while prior denied attempts were reflected in `governor_auth_denied_total`.
 
 - `npm test` passes 32 tests. `npm run status` returns explicit empty state; provider HTTP behavior is mock-provider verified only; local Docker health/readiness and MCP checks are HTTP verified; no hosted deployment, external provider, or production verification exists yet.
 - `http://127.0.0.1:3028/` is evidence of a reachable Ray Sandbox OARC page only.

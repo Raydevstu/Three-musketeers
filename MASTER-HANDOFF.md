@@ -75,3 +75,4 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Structured request logs and protected `/metrics` are implemented and tested locally. Recommended alerts: readiness failures, elevated 5xx responses, authentication denials, provider timeouts, and backup failure.
 - Observe-mode routing now has an end-to-end local proof from gateway-produced authoritative telemetry; candidate selection is persisted and no route is applied. Enforcement remains disabled pending broader hosted evidence.
 - Commit `4b9fb03` is deployed and hosted `/metrics` now refuses access with 503 when `GATEWAY_AUTH_TOKEN` is absent; configure the rotated Render gateway token before operational metrics access or enforcement.
+- Render gateway authentication is now configured; an authenticated metrics request returned HTTP 200 with request and authentication-denial counters.
