@@ -74,3 +74,4 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Backup/restore scripts were repaired and verified locally: raw custom-format dump creation, `pg_restore`, evidence-row preservation, app restart, health 200, and database readiness 200 all passed.
 - Structured request logs and protected `/metrics` are implemented and tested locally. Recommended alerts: readiness failures, elevated 5xx responses, authentication denials, provider timeouts, and backup failure.
 - Observe-mode routing now has an end-to-end local proof from gateway-produced authoritative telemetry; candidate selection is persisted and no route is applied. Enforcement remains disabled pending broader hosted evidence.
+- Commit `4b9fb03` is deployed and hosted `/metrics` now refuses access with 503 when `GATEWAY_AUTH_TOKEN` is absent; configure the rotated Render gateway token before operational metrics access or enforcement.
