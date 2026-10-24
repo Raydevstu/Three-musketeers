@@ -70,7 +70,7 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Safe `/v1/chat` verification passes locally against an isolated HTTP mock provider; hosted provider connectivity remains unverified.
 - Protocol-level MCP client integration now passes locally: authentication, profile listing, explicit retrieval budget, safe retrieval, and traversal denial are verified over HTTP.
 - Current Docker staging image was rebuilt and verified: `/ready` returned `database: ready`, 50/50 health probes returned 200, unauthorized readiness returned 401, MCP profiles returned 200, and traversal returned 403.
-- Oversized `/v1/chat` input was rejected by the body guard but currently surfaces as 502; improve to an explicit 413 before treating body-limit security as polished.
+- Oversized `/v1/chat` input now returns explicit 413 with a regression test; body-limit handling is locally verified.
 - Backup/restore scripts were repaired and verified locally: raw custom-format dump creation, `pg_restore`, evidence-row preservation, app restart, health 200, and database readiness 200 all passed.
 - Structured request logs and protected `/metrics` are implemented and tested locally. Recommended alerts: readiness failures, elevated 5xx responses, authentication denials, provider timeouts, and backup failure.
 - Observe-mode routing now has an end-to-end local proof from gateway-produced authoritative telemetry; candidate selection is persisted and no route is applied. Enforcement remains disabled pending broader hosted evidence.

@@ -22,6 +22,8 @@ This is the only project progress record. Keep status, evidence, risks, decision
 
 ## Evidence limits
 
+- Oversized `/v1/chat` requests now return explicit HTTP 413; full suite passes 39 tests.
+
 - `npm test` passes 32 tests. `npm run status` returns explicit empty state; provider HTTP behavior is mock-provider verified only; local Docker health/readiness and MCP checks are HTTP verified; no hosted deployment, external provider, or production verification exists yet.
 - `http://127.0.0.1:3028/` is evidence of a reachable Ray Sandbox OARC page only.
 - Ray Memory health is not the same as project sharing readiness.

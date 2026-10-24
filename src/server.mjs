@@ -89,7 +89,7 @@ export function createGatewayServer({ providerUrl, provider, model, ledger, fetc
       }, ledger, (chunk) => response.write(chunk));
       response.end();
     } catch (error) {
-      if (!response.headersSent) response.writeHead(502, { 'content-type': 'application/json' });
+      if (!response.headersSent) response.writeHead(error instanceof Error && error.message === 'request body too large' ? 413 : 502, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ error: error instanceof Error ? error.message : 'Gateway failure' }));
     }
   });

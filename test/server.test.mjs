@@ -155,3 +155,17 @@ test('runs observe routing from authoritative gateway telemetry without applying
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+test('rejects oversized chat requests with 413', async () => {
+  const ledger = await createLedger();
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger, maxBodyBytes: 32 });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/v1/chat`, { method: 'POST', body: JSON.stringify({ content: 'this request is larger than thirty-two bytes' }) });
+    assert.equal(response.status, 413);
+    assert.deepEqual(await response.json(), { error: 'request body too large' });
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
