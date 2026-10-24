@@ -11,9 +11,38 @@ services:
         value: unconfigured
       - key: EVIDENCE_LEDGER_PATH
         value: /app/.data/evidence.jsonl
-      - key: DATABASE_URL
-        sync: false
+      - key: ROUTING_ENFORCE_ENABLED
+        value: "false"
       - key: GATEWAY_AUTH_TOKEN
         sync: false
       - key: PROVIDER_URL
         sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: governor-postgres
+          property: connectionString
+  - type: worker
+    name: three-ai-musketeers-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: node src/worker.mjs
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: governor-postgres
+          property: connectionString
+  - type: cron
+    name: three-ai-musketeers-scheduler
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    schedule: "*/1 * * * *"
+    dockerCommand: node src/scheduler.mjs --once
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: governor-postgres
+          property: connectionString
+
+databases:
+  - name: governor-postgres
+    plan: free

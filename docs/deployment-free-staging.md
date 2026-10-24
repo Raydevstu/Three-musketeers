@@ -4,10 +4,13 @@ This repository is locally prepared for a later GitHub Actions → Render + Neon
 
 ## Current local evidence
 
-- `npm test`: 32 tests passed.
+- `npm test`: 40 tests passed.
 - Docker Compose starts the app, PostgreSQL, and mock provider locally.
 - Public `GET /health` returns HTTP 200 for platform liveness probes.
 - Authenticated `GET /ready` returns HTTP 200; unauthenticated readiness returns HTTP 401.
+- A local 50-request health probe returned 50/50 HTTP 200 responses.
+- Authenticated local `/v1/chat` returned HTTP 200 through the mock provider.
+- An authenticated traversal attempt returned HTTP 403.
 - Protected application requests return HTTP 401 when `GATEWAY_AUTH_TOKEN` is configured.
 
 These checks are local evidence only. They do not prove a hosted deployment.
@@ -43,6 +46,14 @@ The current migration is designed for first initialization. Existing databases s
 
 The checked-in `render.yaml` intentionally marks connection strings and tokens as dashboard-managed secrets. Never paste their values into Git, workflow logs, screenshots, or chat.
 
+Routing enforcement is disabled by default. A controlled canary must set `ROUTING_ENFORCE_ENABLED=true` only after hosted observe evidence and the routing-safety review pass; otherwise `routing_mode: enforce` is rejected.
+
+## Alert configuration contract
+
+Configure monitoring against protected `/metrics` and platform logs. Alert on repeated readiness failures, elevated 5xx responses or latency, increases in `governor_auth_denied_total`, provider failures/timeouts, and backup failures or missing artifacts.
+
+The repository exposes `governor_requests_total`, `governor_auth_denied_total`, `governor_http_5xx_total`, `governor_provider_failures_total`, `governor_readiness_failures_total`, and `governor_request_duration_ms_sum` locally. The checked-in [`ops/prometheus-alerts.yml`](../ops/prometheus-alerts.yml) defines the application alerts. Backup alerts still require the PostgreSQL backup job or hosting-platform integration.
+
 ## Not yet proven
 
 - GitHub Actions execution on the remote repository.
@@ -51,3 +62,4 @@ The checked-in `render.yaml` intentionally marks connection strings and tokens a
 - Hosted migration success.
 - External provider connectivity.
 - Backups, rollback, production availability, or production readiness.
+- Hosted alert rules and notification delivery.

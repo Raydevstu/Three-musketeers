@@ -67,6 +67,12 @@ test('unknown routing mode is refused', () => {
   assert.throws(() => applyRoutingMode({ route: 'fast' }, 'unknown'), /routing mode/);
 });
 
+test('enforce mode is fail-closed until the feature flag is enabled', () => {
+  const decision = { route: 'fast', reason: 'within_budget', evidence: 'authoritative' };
+  assert.throws(() => applyRoutingMode(decision, 'enforce'), /enforcement disabled/);
+  assert.deepEqual(applyRoutingMode(decision, 'enforce', { enforceEnabled: true }), { ...decision, applied_route: 'fast', mode: 'enforce' });
+});
+
 test('benchmarks small, medium, and large context diffs', () => {
   assert.deepEqual(benchmarkDiffSizes(2).map((item) => item.size), [10, 100, 1000]);
 });

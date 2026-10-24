@@ -71,7 +71,8 @@ export async function persistRouteDecision(ledger, decision, turn_id, timestamp 
   return record;
 }
 
-export function applyRoutingMode(decision, mode = 'off') {
+export function applyRoutingMode(decision, mode = 'off', { enforceEnabled = false } = {}) {
   if (!['off', 'observe', 'enforce'].includes(mode)) throw new Error('invalid routing mode');
+  if (mode === 'enforce' && !enforceEnabled) throw new Error('routing enforcement disabled');
   return { ...decision, applied_route: mode === 'enforce' ? decision.route : null, mode };
 }

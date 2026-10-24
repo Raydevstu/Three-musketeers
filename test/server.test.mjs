@@ -3,6 +3,80 @@ import assert from 'node:assert/strict';
 import { createServer as createHttpServer } from 'node:http';
 import { createGatewayServer } from '../src/server.mjs';
 import { createLedger, readLedger } from '../src/ledger.mjs';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
+test('serves the operator UI shell without exposing protected telemetry', async () => {
+  const uiRoot = await mkdtemp(path.join(tmpdir(), 'governor-ui-'));
+  await writeFile(path.join(uiRoot, 'index.html'), '<html>Context Governor</html>');
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger: await createLedger(), authToken: 'secret', uiRoot });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  try {
+    const page = await fetch(`http://127.0.0.1:${port}/`);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /Context Governor/);
+    assert.equal((await fetch(`http://127.0.0.1:${port}/metrics`)).status, 401);
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('serves UI styles with a browser-compatible content type', async () => {
+  const uiRoot = await mkdtemp(path.join(tmpdir(), 'governor-ui-'));
+  await writeFile(path.join(uiRoot, 'index.html'), '<html></html>');
+  await mkdir(path.join(uiRoot, 'assets'));
+  await writeFile(path.join(uiRoot, 'assets', 'styles.css'), 'body { color: red; }');
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger: await createLedger(), uiRoot });
+  await new Promise((resolve) => server.listen(0, resolve));
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/assets/styles.css`);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'text/css');
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('exposes the prompt compiler through an authenticated route', async () => {
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger: await createLedger(), authToken: 'compiler-token', compiler: { compile: async (prompt) => ({ intent_vector: prompt, context_payload: {}, constraints: [], step_by_step_plan: [], expected_output_format: 'markdown', token_budget: 500 }) } });
+  await new Promise((resolve) => server.listen(0, resolve));
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/prompt/compile`, { method: 'POST', headers: { authorization: 'Bearer compiler-token', 'content-type': 'application/json' }, body: JSON.stringify({ prompt: 'Build a safe route' }) });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).intent_vector, 'Build a safe route');
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('exposes deterministic skill injection after compilation', async () => {
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger: await createLedger(), authToken: 'skill-token', compiler: { compile: async () => ({ intent_vector: 'debug api auth', context_payload: {}, constraints: [], step_by_step_plan: [], expected_output_format: 'markdown', token_budget: 500 }) }, skills: [{ name: 'api-debugger', description: 'debug APIs', keywords: ['api', 'auth'] }] });
+  await new Promise((resolve) => server.listen(0, resolve));
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/prompt/prepare`, { method: 'POST', headers: { authorization: 'Bearer skill-token', 'content-type': 'application/json' }, body: JSON.stringify({ prompt: 'Fix auth' }) });
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).skills, [{ name: 'api-debugger', reason: 'keyword:api' }]);
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('runs the authenticated automatic workflow and exposes a local automation job', async () => {
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger: await createLedger(), authToken: 'workflow-token', compiler: { compile: async (prompt) => ({ intent_vector: prompt, context_payload: {}, constraints: [], step_by_step_plan: [], expected_output_format: 'markdown', token_budget: 100 }) } });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const headers = { authorization: 'Bearer workflow-token', 'content-type': 'application/json' };
+  try {
+    const jobs = await fetch(`http://127.0.0.1:${server.address().port}/automation/jobs`, { headers });
+    assert.deepEqual((await jobs.json()).jobs, [{ name: 'local-smoke' }]);
+    const workflow = await fetch(`http://127.0.0.1:${server.address().port}/workflow/run`, { method: 'POST', headers, body: JSON.stringify({ prompt: 'Run tests and prepare a status note' }) });
+    assert.equal(workflow.status, 200);
+    assert.equal((await workflow.json()).result.result.status, 'succeeded');
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
 
 test('serves a local streaming gateway endpoint', async () => {
   const ledger = await createLedger();
@@ -122,7 +196,12 @@ test('exposes protected request metrics and structured request logs', async () =
   assert.equal((await fetch(`http://127.0.0.1:${port}/metrics`)).status, 401);
   const metrics = await fetch(`http://127.0.0.1:${port}/metrics`, { headers: { authorization: 'Bearer metrics-token' } });
   assert.equal(metrics.status, 200);
-  assert.match(await metrics.text(), /governor_requests_total/);
+  const metricsText = await metrics.text();
+  assert.match(metricsText, /governor_requests_total/);
+  assert.match(metricsText, /governor_http_5xx_total/);
+  assert.match(metricsText, /governor_provider_failures_total/);
+  assert.match(metricsText, /governor_request_duration_ms_sum/);
+  assert.match(metricsText, /governor_readiness_failures_total/);
   assert.ok(logs.some((entry) => entry.event === 'http_request' && entry.path === '/metrics'));
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 });

@@ -1,0 +1,31 @@
+groups:
+  - name: context-governor
+    rules:
+      - alert: GovernorReadinessFailures
+        expr: increase(governor_readiness_failures_total[5m]) > 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "Context Governor readiness is failing" }
+      - alert: GovernorHttp5xx
+        expr: increase(governor_http_5xx_total[5m]) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "Context Governor returned HTTP 5xx responses" }
+      - alert: GovernorProviderFailures
+        expr: increase(governor_provider_failures_total[5m]) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "Provider requests are failing" }
+      - alert: GovernorAuthDenials
+        expr: increase(governor_auth_denied_total[10m]) > 10
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "Authentication denials increased" }
+      - alert: GovernorLatency
+        expr: (increase(governor_request_duration_ms_sum[5m]) / increase(governor_requests_total[5m])) > 2000
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "Context Governor mean request latency is high" }
+
+# Backup failure alerts require the PostgreSQL backup job or hosting platform
+# to export a backup-success metric; no backup claim is inferred from app metrics.
