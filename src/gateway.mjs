@@ -57,7 +57,12 @@ export async function sendGatewayRequest(fetchImpl, url, requestBody, metadata, 
     headers,
     body: JSON.stringify(requestBody)
   });
-  if (!response.ok) throw new Error(`Provider request failed: ${response.status}`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Provider request failed: ${response.status} - ${errorText}`
+    );
+  }
   await streamGatewayResponse(response, metadata, ledger, writeChunk);
   return { status: response.status };
 }
