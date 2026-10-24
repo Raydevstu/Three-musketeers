@@ -1,4 +1,7 @@
-param([Parameter(Mandatory=$true)][string]$Input)
+param([Parameter(Mandatory=$true)][string]$BackupPath)
 $ErrorActionPreference = 'Stop'
-Get-Content -Raw -Encoding Byte $Input | docker compose exec -T postgres pg_restore -U governor -d governor --clean --if-exists
-Write-Output "Restore completed from $Input"
+if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) { throw "Backup file not found: $BackupPath" }
+$resolvedBackup = [System.IO.Path]::GetFullPath($BackupPath)
+cmd.exe /d /c "docker compose exec -T postgres pg_restore -U governor -d governor --clean --if-exists < `"$resolvedBackup`""
+if ($LASTEXITCODE -ne 0) { throw "pg_restore failed with exit code $LASTEXITCODE" }
+Write-Output "Restore completed from $BackupPath"

@@ -71,3 +71,4 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Protocol-level MCP client integration now passes locally: authentication, profile listing, explicit retrieval budget, safe retrieval, and traversal denial are verified over HTTP.
 - Current Docker staging image was rebuilt and verified: `/ready` returned `database: ready`, 50/50 health probes returned 200, unauthorized readiness returned 401, MCP profiles returned 200, and traversal returned 403.
 - Oversized `/v1/chat` input was rejected by the body guard but currently surfaces as 502; improve to an explicit 413 before treating body-limit security as polished.
+- Backup/restore scripts were repaired and verified locally: raw custom-format dump creation, `pg_restore`, evidence-row preservation, app restart, health 200, and database readiness 200 all passed.
