@@ -24,6 +24,11 @@ export function createGatewayServer({ providerUrl, provider, model, ledger, fetc
       return;
     }
     if (request.method === 'GET' && request.url === '/metrics') {
+      if (!authToken) {
+        response.writeHead(503, { 'content-type': 'application/json' });
+        response.end(JSON.stringify({ error: 'metrics authentication not configured' }));
+        return;
+      }
       response.writeHead(200, { 'content-type': 'text/plain; version=0.0.4' });
       response.end(`# HELP governor_requests_total Total HTTP requests received\n# TYPE governor_requests_total counter\ngovernor_requests_total ${metrics.requests}\n# HELP governor_auth_denied_total Requests denied by authentication\n# TYPE governor_auth_denied_total counter\ngovernor_auth_denied_total ${metrics.authDenied}\n`);
       return;

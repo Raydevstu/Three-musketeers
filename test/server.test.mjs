@@ -127,6 +127,19 @@ test('exposes protected request metrics and structured request logs', async () =
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 });
 
+test('does not expose metrics when authentication is not configured', async () => {
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger: await createLedger() });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/metrics`);
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { error: 'metrics authentication not configured' });
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
 test('runs observe routing from authoritative gateway telemetry without applying a route', async () => {
   const ledger = await createLedger();
   const upstream = async () => new Response('data: {"usage":{"prompt_tokens":8,"completion_tokens":2}}\n\n', { status: 200 });
