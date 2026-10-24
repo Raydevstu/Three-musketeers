@@ -6,17 +6,26 @@ import { diffContext, decideRoute, applyRoutingMode, persistRouteDecision } from
 
 const emptyBreakdown = { system_instructions: 0, memory_skills: 0, tool_schemas: 0, files_code: 0, tool_output_logs: 0, history: 0 };
 
-export function createGatewayServer({ providerUrl, provider, model, ledger, fetchImpl = fetch, retrievalRoot = process.cwd(), profiles = defaultProfiles, authToken = null, maxBodyBytes = 1_048_576 }) {
+export function createGatewayServer({ providerUrl, provider, model, ledger, fetchImpl = fetch, retrievalRoot = process.cwd(), profiles = defaultProfiles, authToken = null, maxBodyBytes = 1_048_576, logger = console }) {
   const governor = createGovernor({ profiles });
+  const metrics = { requests: 0, authDenied: 0 };
   return createServer(async (request, response) => {
+    metrics.requests += 1;
+    logger.info?.({ event: 'http_request', method: request.method, path: request.url });
     if (request.method === 'GET' && request.url === '/health') {
       response.writeHead(200, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ status: 'ok' }));
       return;
     }
     if (authToken && request.headers.authorization !== `Bearer ${authToken}`) {
+      metrics.authDenied += 1;
       response.writeHead(401, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ error: 'Unauthorized' }));
+      return;
+    }
+    if (request.method === 'GET' && request.url === '/metrics') {
+      response.writeHead(200, { 'content-type': 'text/plain; version=0.0.4' });
+      response.end(`# HELP governor_requests_total Total HTTP requests received\n# TYPE governor_requests_total counter\ngovernor_requests_total ${metrics.requests}\n# HELP governor_auth_denied_total Requests denied by authentication\n# TYPE governor_auth_denied_total counter\ngovernor_auth_denied_total ${metrics.authDenied}\n`);
       return;
     }
     if (request.method === 'GET' && request.url === '/ready') {

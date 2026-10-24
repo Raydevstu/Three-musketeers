@@ -72,3 +72,4 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Current Docker staging image was rebuilt and verified: `/ready` returned `database: ready`, 50/50 health probes returned 200, unauthorized readiness returned 401, MCP profiles returned 200, and traversal returned 403.
 - Oversized `/v1/chat` input was rejected by the body guard but currently surfaces as 502; improve to an explicit 413 before treating body-limit security as polished.
 - Backup/restore scripts were repaired and verified locally: raw custom-format dump creation, `pg_restore`, evidence-row preservation, app restart, health 200, and database readiness 200 all passed.
+- Structured request logs and protected `/metrics` are implemented and tested locally. Recommended alerts: readiness failures, elevated 5xx responses, authentication denials, provider timeouts, and backup failure.

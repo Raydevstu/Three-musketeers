@@ -112,3 +112,17 @@ test('serves a read-only optimization inspection method', async () => {
   assert.deepEqual(body.decision, { route: 'fast', reason: 'within_budget', evidence: 'authoritative', applied_route: null, mode: 'off' });
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 });
+
+test('exposes protected request metrics and structured request logs', async () => {
+  const ledger = await createLedger();
+  const logs = [];
+  const server = createGatewayServer({ providerUrl: '', provider: 'local', model: 'test', ledger, authToken: 'metrics-token', logger: { info: (entry) => logs.push(entry) } });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  assert.equal((await fetch(`http://127.0.0.1:${port}/metrics`)).status, 401);
+  const metrics = await fetch(`http://127.0.0.1:${port}/metrics`, { headers: { authorization: 'Bearer metrics-token' } });
+  assert.equal(metrics.status, 200);
+  assert.match(await metrics.text(), /governor_requests_total/);
+  assert.ok(logs.some((entry) => entry.event === 'http_request' && entry.path === '/metrics'));
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+});
