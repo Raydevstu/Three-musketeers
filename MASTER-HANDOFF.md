@@ -4,7 +4,7 @@ This is the single cumulative handoff for every chat, session, compaction, and a
 
 ## Current objective
 
-Continue with Phase 2 — Surgical enforcement — from the completed Phase 0 → Phase 1 Big Slice. Keep one canonical file per core concern and one coherent Big Slice per phase.
+Complete the hosted evidence gates for Phase 2 and Phase 3, then decide whether routing enforcement can be enabled safely. Keep one canonical file per core concern and one coherent Big Slice per phase.
 
 ## Current state — 2026-10-24
 
@@ -48,7 +48,7 @@ Continue with Phase 2 — Surgical enforcement — from the completed Phase 0 �
 - The local operator session remains read-only; write verification used the explicitly enabled local development principal.
 - The Ray MCP endpoint and production deployment remain separate, unverified gates.
 
-## Exact next boundary — Phase 2 Big Slice
+## Exact next boundary — hosted evidence and controlled enforcement
 
 Phase 2 implementation slice completed locally:
 
@@ -59,7 +59,7 @@ Phase 2 implementation slice completed locally:
 5. Added focused tests for path traversal, profile denial, budget rejection, bounded output, and HTTP profile listing.
 6. `npm test` passes 15 tests.
 
-Next boundary: commit this verified local slice, then use an authorized Git remote and hosted staging credentials for CI, Neon, and Render verification.
+Next boundary: run staging load/security and rollback checks, collect real-provider observe telemetry, review safety results, and only then enable enforcement behind a feature flag.
 
 ## Open risks
 
@@ -74,5 +74,6 @@ Next boundary: commit this verified local slice, then use an authorized Git remo
 - Backup/restore scripts were repaired and verified locally: raw custom-format dump creation, `pg_restore`, evidence-row preservation, app restart, health 200, and database readiness 200 all passed.
 - Structured request logs and protected `/metrics` are implemented and tested locally. Recommended alerts: readiness failures, elevated 5xx responses, authentication denials, provider timeouts, and backup failure.
 - Observe-mode routing now has an end-to-end local proof from gateway-produced authoritative telemetry; candidate selection is persisted and no route is applied. Enforcement remains disabled pending broader hosted evidence.
-- Commit `4b9fb03` is deployed and hosted `/metrics` now refuses access with 503 when `GATEWAY_AUTH_TOKEN` is absent; configure the rotated Render gateway token before operational metrics access or enforcement.
-- Render gateway authentication is now configured; an authenticated metrics request returned HTTP 200 with request and authentication-denial counters.
+- Render gateway authentication is configured; an authenticated `/metrics` request returned HTTP 200 with request and authentication-denial counters.
+- Hosted `/v1/chat` has not yet been verified against a real provider, and hosted observe-mode routing has not yet been proven with real provider telemetry.
+- Automatic enforcement remains disabled until hosted telemetry, load/security, rollback, and alert evidence pass review.
